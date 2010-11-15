@@ -1,0 +1,47 @@
+#!/usr/bin/env perl
+
+use Mojolicious::Lite;
+use Mojo::ByteStream qw/b/;
+use IO::Dir;
+
+my $dir = q[/usr/local/share/pictures/2010-10-30];
+
+get '/' => sub {
+    my $c = shift;
+    tie my %dir, 'IO::Dir', $dir;
+    $c->stash(dir => { %dir });
+} => 'index';
+
+get '/download/(.file)' => sub {
+    my $c = shift;
+    my $file = $c->stash("file");
+    $c->app->log->debug("serving $file");
+    $c->app->static->root($dir);
+    $c->app->static->serve($c,$c->stash("file"));
+    $c->rendered;
+} => 'download';
+
+get '/thumbnail/(.file)' => sub {
+    my $c = shift;
+    my $file = $c->stash("file");
+
+
+} => 'thumb';
+
+app->start;
+__DATA__
+
+@@ index.html.ep
+% layout 'default';
+% for my $k (sort keys %$dir) {
+% next if $k =~ /^\./;
+%= link_to 'download' => {file => $k} => begin
+<%= $k =%>
+%= end
+% }
+
+@@ layouts/default.html.ep
+<html>
+<%= content =%>
+</html>
+
