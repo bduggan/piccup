@@ -5,6 +5,7 @@
 use Mojolicious::Lite;
 use Mojo::ByteStream qw/b/;
 use IO::Dir;
+use Image::Scale;
 
 my $dir = q[/home/bduggan/Pictures/2008-08-22/];
 my $thumbdir = q[/tmp];
@@ -31,8 +32,9 @@ get '/thumbnail/(.file)' => sub {
     my $file = $c->stash("file");
     my $tfile = "$thumbdir/thumb_$file";
     unless (-e "$tfile") {
-        system("gm convert -scale 256x256 $dir/$file $tfile")==0
-            or app->log->warn("errors scaling: $!");
+        my $i = Image::Scale->new("$dir/$file") or die "could not read $dir/$file";
+        $i->resize_gm_fixed_point({ width => 256 } );
+        $i->save_jpeg("$tfile");
     }
     app->log->debug("serving thumbnail $tfile");
     app->static->root($thumbdir);
