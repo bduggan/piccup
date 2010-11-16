@@ -1,11 +1,14 @@
 #!/usr/bin/env perl
 
+# quickpik image viewer, copyright brian duggan 2010, GPL
+
 use Mojolicious::Lite;
 use Mojo::ByteStream qw/b/;
 use IO::Dir;
 
-my $dir = q[/usr/local/share/pictures/2010-10-30];
-app->static->root($dir);
+my $dir = q[/home/bduggan/Pictures/2008-08-22/];
+my $thumbdir = q[/tmp];
+
 app->types->type(JPG => "image/jpeg");
 
 get '/' => sub {
@@ -18,6 +21,7 @@ get '/download/(.file)' => sub {
     my $c = shift;
     my $file = $c->stash("file");
     app->log->debug("serving $file");
+    app->static->root($dir);
     app->static->serve($c,$c->stash("file"));
     $c->rendered;
 } => 'download';
@@ -25,12 +29,13 @@ get '/download/(.file)' => sub {
 get '/thumbnail/(.file)' => sub {
     my $c = shift;
     my $file = $c->stash("file");
-    my $tfile = "$dir/thumb_$file";
+    my $tfile = "$thumbdir/thumb_$file";
     unless (-e "$tfile") {
-        system("djpeg -scale 1/8 -fast $dir/$file > $tfile")==0
+        system("gm convert -scale 256x256 $dir/$file $tfile")==0
             or app->log->warn("errors scaling: $!");
     }
-    app->log->debug("sering thumbnail $tfile");
+    app->log->debug("serving thumbnail $tfile");
+    app->static->root($thumbdir);
     app->static->serve($c,"thumb_$file");
     $c->rendered;
 } => 'thumb';
@@ -43,13 +48,63 @@ __DATA__
 % for my $k (sort keys %$dir) {
 % next if $k =~ /^\./;
 % next unless $k =~ /jpg$/i;
+<div class="img">
 %= link_to 'download' => {file => $k} => begin
-<img src='<%= url_for(thumb => {file => $k})  =%>'><%= $k =%>
+<img alt="<%= $k =%>" title="<%= $k =%>" src='<%= url_for(thumb => {file => $k})  =%>'>
 %= end
+<div class="desc">
+<%= $k =%>
+</div>
+</div>
 % }
 
 @@ layouts/default.html.ep
+%# thanks: http://www.w3schools.com/CSS/css_image_gallery.asp
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
+<head>
+<%= stylesheet 'quickpik.css' =%>
+</head>
+<body>
 <%= content =%>
+</body>
 </html>
+
+@@ quickpik.css
+body {
+    background:#def0ad
+}
+
+div.img
+  {
+  margin:2px;
+  border:1px solid #0000ff;
+  height:auto;
+  width:auto;
+  float:left;
+  text-align:center;
+  background-color:#ccc;
+  }
+div.img img
+  {
+  display:inline;
+  margin:3px;
+  border:1px solid #ffffff;
+  }
+div.img a:hover img
+  {
+  border:1px solid #0000ff;
+  }
+div.desc
+  {
+  text-align:center;
+  font-weight:normal;
+  width:120px;
+  margin:2px;
+  }
+
+a {
+    text-decoration:none;
+}
+
 
