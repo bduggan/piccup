@@ -7,13 +7,13 @@ use Mojo::ByteStream qw/b/;
 use IO::Dir;
 use Image::Scale;
 
-my $dir = q[/home/bduggan/Pictures/2008-08-22/];
-my $thumbdir = q[/tmp];
+plugin 'json_config';
 
 app->types->type(JPG => "image/jpeg");
 
 get '/' => sub {
     my $c = shift;
+    my $dir = $c->stash("config")->{image_dir};
     tie my %dir, 'IO::Dir', $dir;
     $c->stash(dir => { %dir });
 } => 'index';
@@ -21,6 +21,7 @@ get '/' => sub {
 get '/download/(.file)' => sub {
     my $c = shift;
     my $file = $c->stash("file");
+    my $dir = $c->stash("config")->{image_dir};
     app->log->debug("serving $file");
     app->static->root($dir);
     app->static->serve($c,$c->stash("file"));
@@ -29,6 +30,8 @@ get '/download/(.file)' => sub {
 
 get '/thumbnail/(.file)' => sub {
     my $c = shift;
+    my $dir = $c->stash("config")->{image_dir};
+    my $thumbdir = $c->stash("config")->{thumb_dir};
     my $file = $c->stash("file");
     my $tfile = "$thumbdir/thumb_$file";
     unless (-e "$tfile") {
