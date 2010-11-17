@@ -8,29 +8,49 @@ use IO::Dir;
 use Image::Scale;
 
 plugin 'json_config';
+plugin 'basic_auth';
 
 app->types->type(JPG => "image/jpeg");
 
-get '/' => sub {
+sub _check_user_pw {
+    my ($c, $user,$pw) = @_;
+    my $conf = $c->stash("config");
+    return 0 unless $user && $pw && $conf->{$user} && $conf->{$user}{pw} eq $pw;
+    $c->stash(user => $user);
+    $c->stash(dirs => $conf->{$user}{dirs});
+    return 1;
+}
+
+under sub {
     my $c = shift;
-    my $dir = $c->stash("config")->{image_dir};
+    unless ($c->basic_auth( photos => sub { _check_user_pw($c,@_) } )) {
+        $c->render(text => 'incorrect user/password');
+        return;
+    }
+    return 1;
+};
+
+get '/:dirindex' => [ dirindex => qr/\d+/ ] => { dirindex => 0 } => sub {
+    my $c = shift;
+    my $dirs = $c->stash("dirs");
+    my $dir = $dirs->[ $c->stash("dirindex") ];
     tie my %dir, 'IO::Dir', $dir;
     $c->stash(dir => { %dir });
 } => 'index';
 
-get '/download/(.file)' => sub {
+get '/download/:dirindex/(.file)' => { dirindex => 0 } =>  sub {
     my $c = shift;
     my $file = $c->stash("file");
-    my $dir = $c->stash("config")->{image_dir};
+    my $dir = $c->stash("dirs")->[ $c->stash("dirindex") ];
     app->log->debug("serving $file");
     app->static->root($dir);
     app->static->serve($c,$c->stash("file"));
     $c->rendered;
 } => 'download';
 
-get '/thumbnail/(.file)' => sub {
+get '/thumbnail/:dirindex/(.file)' => { dirindex => 0 } => sub {
     my $c = shift;
-    my $dir = $c->stash("config")->{image_dir};
+    my $dir = $c->stash("dirs")->[ $c->stash("dirindex") ];
     my $thumbdir = $c->stash("config")->{thumb_dir};
     my $file = $c->stash("file");
     my $tfile = "$thumbdir/thumb_$file";
