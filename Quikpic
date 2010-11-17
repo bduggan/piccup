@@ -6,6 +6,8 @@ use Mojolicious::Lite;
 use Mojo::ByteStream qw/b/;
 use IO::Dir;
 use Image::Scale;
+use File::Spec;
+use File::Path qw/mkpath/;
 
 plugin 'json_config';
 plugin 'basic_auth';
@@ -34,6 +36,7 @@ get '/:dirindex' => [ dirindex => qr/\d+/ ] => { dirindex => 0 } => sub {
     my $c = shift;
     my $dirs = $c->stash("dirs");
     my $dir = $dirs->[ $c->stash("dirindex") ];
+    app->log->debug("listing files in $dir");
     tie my %dir, 'IO::Dir', $dir;
     $c->stash(dir => { %dir });
 } => 'index';
@@ -51,7 +54,9 @@ get '/download/:dirindex/(.file)' => { dirindex => 0 } =>  sub {
 get '/thumbnail/:dirindex/(.file)' => { dirindex => 0 } => sub {
     my $c = shift;
     my $dir = $c->stash("dirs")->[ $c->stash("dirindex") ];
-    my $thumbdir = $c->stash("config")->{thumb_dir};
+    my $thumbbase = $c->stash("config")->{thumb_dir};
+    my $thumbdir = File::Spec->canonpath(File::Spec->catdir($thumbbase, $dir));
+    mkpath $thumbdir;
     my $file = $c->stash("file");
     my $tfile = "$thumbdir/thumb_$file";
     unless (-e "$tfile") {
@@ -74,8 +79,8 @@ __DATA__
 % next if $k =~ /^\./;
 % next unless $k =~ /jpg$/i;
 <div class="img">
-%= link_to 'download' => {file => $k} => begin
-<img alt="<%= $k =%>" title="<%= $k =%>" src='<%= url_for(thumb => {file => $k})  =%>'>
+%= link_to 'download' => {file => $k, dirindex => $dirindex} => begin
+<img alt="<%= $k =%>" title="<%= $k =%>" src='<%= url_for(thumb => {file => $k, dirindex => $dirindex})  =%>'>
 %= end
 <div class="desc">
 <%= $k =%>
