@@ -1,0 +1,11 @@
+{
+    "thumb_dir" : "/tmp",
+    "brian" : {
+        "pw" : "foo",
+        "dirs" : [
+                 "/home/bduggan/Pictures/first_batch",
+                 "/home/bduggan/Pictures/second_batch"
+                ]
+      }
+}
+
