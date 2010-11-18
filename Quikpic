@@ -75,6 +75,11 @@ __DATA__
 
 @@ index.html.ep
 % layout 'default';
+% for my $i (0..$#$dirs) {
+%= link_to 'index' => {dirindex => $i} => begin
+O
+% end
+% }
 % for my $k (sort keys %$dir) {
 % next if $k =~ /^\./;
 % next unless $k =~ /jpg$/i;
@@ -82,9 +87,9 @@ __DATA__
 %= link_to 'download' => {file => $k, dirindex => $dirindex} => begin
 <img alt="<%= $k =%>" title="<%= $k =%>" src='<%= url_for(thumb => {file => $k, dirindex => $dirindex})  =%>'>
 %= end
-<div class="desc">
-<%= $k =%>
-</div>
+    <div class="desc">
+    <%= $k =%>
+    </div>
 </div>
 % }
 
