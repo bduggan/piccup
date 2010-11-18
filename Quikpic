@@ -8,6 +8,7 @@ use IO::Dir;
 use Image::Scale;
 use File::Spec;
 use File::Path qw/mkpath/;
+use Color::Spectrum::Multi;
 
 plugin 'json_config';
 plugin 'basic_auth';
@@ -39,6 +40,8 @@ get '/:dirindex' => [ dirindex => qr/\d+/ ] => { dirindex => 0 } => sub {
     app->log->debug("listing files in $dir");
     tie my %dir, 'IO::Dir', $dir;
     $c->stash(dir => { %dir });
+    $c->stash(colors => [ Color::Spectrum::Multi->new
+            ->generate(0+@$dirs,'#FF8888','#88FF88','#8888FF') ]);
 } => 'index';
 
 get '/download/:dirindex/(.file)' => { dirindex => 0 } =>  sub {
@@ -75,11 +78,15 @@ __DATA__
 
 @@ index.html.ep
 % layout 'default';
+<table class='nav'><tr>
 % for my $i (0..$#$dirs) {
+<td style='color:<%= shift @$colors =%>'>
 %= link_to 'index' => {dirindex => $i} => begin
-O
+<%== $i==$dirindex ? "&#x25BC;" : "&#x25BD;" =%>
 % end
+</td>
 % }
+</tr></table>
 % for my $k (sort keys %$dir) {
 % next if $k =~ /^\./;
 % next unless $k =~ /jpg$/i;
@@ -109,7 +116,23 @@ O
 body {
     background:#def0ad
 }
-
+table.nav {
+  border-collapse;collapse;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+  background-color:black;
+  width:100%;
+  }
+table.nav tr td {
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+}
+table.nav tr td:hover {
+  background-color:white;
+}
+table.nav tr td a {
+  color:inherit;
+  }
 div.img
   {
   margin:2px;
