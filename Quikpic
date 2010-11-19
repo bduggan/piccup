@@ -81,7 +81,7 @@ __DATA__
 <table class='nav'><tr>
 % for my $i (1..$#$dirs) {
 <td style='color:<%= shift @$colors =%>'>
-% my ($label) = $dirs->[$dirindex] =~ /\/([^\/]*)$/;
+% my ($label) = $dirs->[$i] =~ /\/([^\/]*)$/;
 %= link_to 'index' => {dirindex => $i} => ( title => "$label" ) => begin
 <%== $i==$dirindex ? "&#x25BC;" : "&#x25BD;" =%>
 % end
