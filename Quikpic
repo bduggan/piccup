@@ -79,9 +79,10 @@ __DATA__
 @@ index.html.ep
 % layout 'default';
 <table class='nav'><tr>
-% for my $i (0..$#$dirs) {
+% for my $i (1..$#$dirs) {
 <td style='color:<%= shift @$colors =%>'>
-%= link_to 'index' => {dirindex => $i} => begin
+% my ($label) = $dirs->[$dirindex] =~ /\/([^\/]*)$/;
+%= link_to 'index' => {dirindex => $i} => ( title => "$label" ) => begin
 <%== $i==$dirindex ? "&#x25BC;" : "&#x25BD;" =%>
 % end
 </td>
