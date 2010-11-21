@@ -18,8 +18,14 @@ sub _check_user_pw {
     my ($c, $user,$pw) = @_;
     my $conf = $c->stash("config");
     return 0 unless $user && $pw && $conf->{$user} && $conf->{$user}{pw} eq $pw;
+    my $dirs = $conf->{$user}{dirs};
+    my %labels = map { $_ => do { /\/([^\/]*)$/; $1; }} @$dirs;
     $c->stash(user => $user);
-    $c->stash(dirs => $conf->{$user}{dirs});
+    $c->stash(dirs => [ sort {
+                  $labels{$a} =~ /^\d/ && $labels{$b} !~ /^\d/ ? -1
+                : $labels{$b} =~ /^\d/ && $labels{$a} !~ /^\d/ ? 1
+                : $labels{$b} cmp $labels{$a}} @$dirs ]);
+    $c->stash(labels => \%labels);
     return 1;
 }
 
@@ -75,14 +81,16 @@ __DATA__
 
 @@ index.html.ep
 % layout 'default';
+% my $cols = 10;
 <table class='nav'><tr>
-% for my $i (1..$#$dirs) {
-<td>
-% my ($label) = $dirs->[$i] =~ /\/([^\/]*)$/;
-%= link_to 'index' => {dirindex => $i} => ( title => "$label" ) => begin
-<%== $i==$dirindex ? "&#x25BC;" : "&#x25BD;" =%>
+% for my $i (0..$#$dirs) {
+<td <%== $i==$dirindex ? 'class="selected"' : '' %> <%== sprintf('style="width:%d%%"',100/$cols) =%> >
+% my $label = $labels->{$dirs->[$i]};
+%= link_to 'index' => {dirindex => $i} => (title => "$label") => begin
+<%= $label =%>
 % end
 </td>
+%== ($i+1) % $cols == 0 ? "</tr><tr>" : ""
 % }
 </tr></table>
 % for my $k (sort keys %$dir) {
@@ -118,8 +126,7 @@ body {
 }
 table.nav {
   border-collapse;collapse;
-  border-top: 1px solid #20201E;
-  border-bottom: 1px solid #20201E;
+  border: 1px solid #20201E;
   background-color:transparent;
   border-collapse:collapse;
   width:100%;
@@ -127,8 +134,11 @@ table.nav {
 table.nav tr td {
   color:#20201E;
   text-align:center;
-  border-left: 1px solid #20201E;
-  border-right: 1px solid #20201E;
+  border: 1px solid #20201E;
+}
+table.nav tr td.selected {
+  background-color: #20201E;
+  color:#dcdca0;
 }
 table.nav tr td:hover {
   background-color:white;
