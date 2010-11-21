@@ -24,7 +24,7 @@ sub _check_user_pw {
         my $i = IO::File->new("<$file") or die "no such file $file";
         $dirs = [ map { chomp; $_; } $i->getlines ];
     }
-    my %labels = map { $_ => do { /\/([^\/]*)$/; $1; }} @$dirs;
+    my %labels = map { $_ => do { /\/([^\/]*)$/; substr($1,0,10); }} @$dirs;
     $c->stash(user => $user);
     $c->stash(dirs => [ sort {
                   $labels{$a} =~ /^\d/ && $labels{$b} !~ /^\d/ ? -1
