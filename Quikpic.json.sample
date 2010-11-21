@@ -1,17 +1,13 @@
-%#--- Find jpegs ---#
-% use File::Find::Rule;
-% my $has_jpeg = sub { my ( $n, $p, $f) = @_; @{ [ glob("$f/*.{jpg,JPG}") ] } > 0; };
-% our @dirs;
-% unless (@dirs) {
-% @dirs = File::Find::Rule->directory->exec($has_jpeg)->in("/home/bduggan/Pictures/share/");
-% push @dirs, File::Find::Rule->directory->exec($has_jpeg)->in("/home/bduggan/Pictures/");
-% }
-%#------------------#
 {
     "thumb_dir" : "/tmp",
-    "brian" : {
+    "sam" : {
         "pw" : "foo",
-        "dirs" : [ <%= join ',', map qq["$_"], @dirs =%> ]
+        "dirs" : [ "/some/dir/someplace" ]
+      },
+    "joe" : {
+        "pw" : "foo",
+        "dir_file" : "<%= app->home =%>/all.txt"
       }
+
 }
 

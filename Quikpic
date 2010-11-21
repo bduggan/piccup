@@ -8,6 +8,7 @@ use IO::Dir;
 use Image::Scale;
 use File::Spec;
 use File::Path qw/mkpath/;
+use IO::File;
 
 plugin 'json_config';
 plugin 'basic_auth';
@@ -19,6 +20,10 @@ sub _check_user_pw {
     my $conf = $c->stash("config");
     return 0 unless $user && $pw && $conf->{$user} && $conf->{$user}{pw} eq $pw;
     my $dirs = $conf->{$user}{dirs};
+    if (!$dirs && (my $file = $conf->{$user}{dir_file}) ) {
+        my $i = IO::File->new("<$file") or die "no such file $file";
+        $dirs = [ map { chomp; $_; } $i->getlines ];
+    }
     my %labels = map { $_ => do { /\/([^\/]*)$/; $1; }} @$dirs;
     $c->stash(user => $user);
     $c->stash(dirs => [ sort {
