@@ -1,0 +1,29 @@
+Quikpic -- a simple image viewer with thumbnails.
+
+Features :
+    - minimal configuration
+    - lazy creation of thumbnails
+    - easy username/password setup
+    - per-user directories
+
+Installation :
+
+find-jpegs /one /two /three > Quicpic.json
+Quikpic daemon
+
+Sample configuration file :
+
+{
+    "thumb_dir" : "/tmp",
+    "sam" : {
+        "pw" : "foo",
+        "dirs" : [ "/some/dir/someplace" ]
+      },
+    "joe" : {
+        "pw" : "foo",
+        "dir_file" : "<%= app->home =%>/all.txt"
+      }
+}
+
+
+
