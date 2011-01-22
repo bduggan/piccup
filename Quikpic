@@ -9,6 +9,7 @@ use Image::Scale;
 use File::Spec;
 use File::Path qw/mkpath/;
 use IO::File;
+use POSIX;
 
 plugin 'json_config';
 plugin 'basic_auth';
@@ -62,12 +63,29 @@ get '/download/:dirindex/(.file)' => { dirindex => 0 } =>  sub {
     $c->rendered;
 } => 'download';
 
+put '/(.file)/:tag' => { tag => "0" } => [ file => qr/[a-zA-Z](?:.*)/] => sub {
+    my $c = shift;
+    my $file = $c->stash("file");
+    my $incoming = $c->stash("config")->{upload_base};
+    my $tag = $c->stash("tag") || POSIX::strftime("%Y-%m-%d",localtime);
+    my $destination = File::Spec->catdir($incoming,$tag);
+    -d $destination or mkpath($destination);
+    my $contents = $c->req->body;
+    my $asset = Mojo::Asset::File->new;
+    $asset->add_chunk($contents);
+    # compare b($contents)->md5_hex to content_md5 header
+    app->log->debug("putting file $file to $destination");
+    $asset->move_to("$destination/$file");
+    $c->render(text => "received ".$asset->size." bytes", status => 200);
+    $c->rendered;
+} => 'upload';
+
 get '/thumbnail/:dirindex/(.file)' => { dirindex => 0 } => sub {
     my $c = shift;
     my $dir = $c->stash("dirs")->[ $c->stash("dirindex") ];
     my $thumbbase = $c->stash("config")->{thumb_dir};
     my $thumbdir = File::Spec->canonpath(File::Spec->catdir($thumbbase, $dir));
-    mkpath $thumbdir;
+    -d $thumbdir or mkpath $thumbdir;
     my $file = $c->stash("file");
     my $tfile = "$thumbdir/thumb_$file";
     unless (-e "$tfile") {
