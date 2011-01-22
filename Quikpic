@@ -8,7 +8,6 @@ use IO::Dir;
 use Image::Scale;
 use File::Spec;
 use File::Path qw/mkpath/;
-use IO::File;
 use POSIX;
 
 plugin 'json_config';
@@ -16,28 +15,30 @@ plugin 'basic_auth';
 
 app->types->type(JPG => "image/jpeg");
 
-sub _check_user_pw {
+sub _sort_sub {
+    # reverse numeric then alpha
+    my ( $a, $b ) = @_;
+    return
+        $a =~ /^\d/ && $b !~ /^\d/ ? -1
+      : $b =~ /^\d/ && $a !~ /^\d/ ? 1
+      : $b cmp $a;
+}
+
+sub _init_user {
     my ($c, $user,$pw) = @_;
     my $conf = $c->stash("config");
     return 0 unless $user && $pw && $conf->{$user} && $conf->{$user}{pw} eq $pw;
-    my $dirs = $conf->{$user}{dirs};
-    if (!$dirs && (my $file = $conf->{$user}{dir_file}) ) {
-        my $i = IO::File->new("<$file") or die "no such file $file";
-        $dirs = [ map { chomp; $_; } $i->getlines ];
-    }
-    my %labels = map { $_ => do { /\/([^\/]*)$/; $1; }} @$dirs;
+    my @dirs = grep -d $_, map glob($_), @{ $conf->{$user}{dirs} };
+    my %labels = map { $_ => do { /\/([^\/]*)$/; $1; }} @dirs;
     $c->stash(user => $user);
-    $c->stash(dirs => [ sort {
-                  $labels{$a} =~ /^\d/ && $labels{$b} !~ /^\d/ ? -1
-                : $labels{$b} =~ /^\d/ && $labels{$a} !~ /^\d/ ? 1
-                : $labels{$b} cmp $labels{$a}} @$dirs ]);
+    $c->stash(dirs => [ sort { _sort_sub($labels{$a},$labels{$b}) } @dirs ]);
     $c->stash(labels => \%labels);
     return 1;
 }
 
 under sub {
     my $c = shift;
-    unless ($c->basic_auth( photos => sub { _check_user_pw($c,@_) } )) {
+    unless ($c->basic_auth( photos => sub { _init_user($c,@_) } )) {
         $c->render(text => 'incorrect user/password');
         return;
     }
@@ -70,10 +71,8 @@ put '/(.file)/:tag' => { tag => "0" } => [ file => qr/[a-zA-Z](?:.*)/] => sub {
     my $tag = $c->stash("tag") || POSIX::strftime("%Y-%m-%d",localtime);
     my $destination = File::Spec->catdir($incoming,$tag);
     -d $destination or mkpath($destination);
-    my $contents = $c->req->body;
-    my $asset = Mojo::Asset::File->new;
-    $asset->add_chunk($contents);
-    # compare b($contents)->md5_hex to content_md5 header
+    my $asset = Mojo::Asset::File->new->add_chunk($c->req->body);
+    # compare b($asset->slurp)->md5_hex to content_md5 header
     app->log->debug("putting file $file to $destination");
     $asset->move_to("$destination/$file");
     $c->render(text => "received ".$asset->size." bytes", status => 200);
