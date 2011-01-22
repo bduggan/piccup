@@ -19,20 +19,17 @@ our $conf = {
 sub main {
     my @files = @ARGV;
     if (my @missing = grep {!-e $_} @files) {
-        warn "missing file : $_\n";
+        die "Could not open @missing\n";
     }
-    @files = grep { -e $_ } @files;
     my $client = Mojo::Client->new();
-    my %results;
     for my $file (@files) {
-        my $url = Mojo::URL->new(join '/', $conf->{url}, (basename $file));
-        $url->userinfo("$conf->{user}:$conf->{pw}");
-        my $tx = $client->build_tx(
-            PUT => $url,
-            { Connection => "Close" },
-            Mojo::Asset::File->new( path => $file )->slurp
+        my $url =
+          Mojo::URL->new( join '/', $conf->{url}, ( basename $file) )
+          ->userinfo("$conf->{user}:$conf->{pw}");
+        my $contents = Mojo::Asset::File->new( path => $file )->slurp;
+        $client->put( $url => { Connection => "Close" },
+            $contents => sub { print $file, " : ",shift->res->body, "\n"; }
         );
-        $client->queue($tx);
     }
     $client->start;
 }

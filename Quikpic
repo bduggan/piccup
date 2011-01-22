@@ -76,7 +76,7 @@ put '/(.file)/:tag' => { tag => "0" } => [ file => qr/[a-zA-Z](?:.*)/] => sub {
     # compare b($asset->slurp)->md5_hex to content_md5 header
     app->log->debug("putting file $file to $destination");
     $asset->move_to("$destination/$file");
-    $c->render(text => "received ".$asset->size." bytes", status => 200);
+    $c->render(text => "wrote ".$asset->size." bytes", status => 200);
     $c->rendered;
 } => 'upload';
 

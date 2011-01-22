@@ -1,12 +1,13 @@
 {
     "thumb_dir" : "/tmp",
+    "upload_base" : "/tmp/pics",
     "sam" : {
         "pw" : "foo",
-        "dirs" : [ "/some/dir/someplace" ]
+        "dirs" : [ "/tmp/pics/*", "/some/dir/someplace" ]
       },
     "joe" : {
         "pw" : "foo",
-        "dir_file" : "<%= app->home =%>/all.txt"
+        "dirs" : [ "/some/dir/*" ]
       }
 
 }
