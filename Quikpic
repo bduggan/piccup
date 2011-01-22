@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
-# quickpik image viewer, copyright brian duggan 2010, GPL
+# quikpic image viewer, copyright Brian Duggan 2010, 2011, GPL
+# <bduggan@matatu.org>
 
 use Mojolicious::Lite;
 use Mojo::ByteStream qw/b/;
