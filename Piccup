@@ -72,7 +72,15 @@ put '/(.file)/:tag' => { tag => "0" } => [ file => qr/[a-zA-Z](?:.*)/] => sub {
     my $tag = $c->stash("tag") || POSIX::strftime("%Y-%m-%d",localtime);
     my $destination = File::Spec->catdir($incoming,$tag);
     -d $destination or mkpath($destination);
-    my $asset = Mojo::Asset::File->new->add_chunk($c->req->body);
+    my $asset = Mojo::Asset::Memory->new;
+    $asset->add_chunk($c->req->body);
+    my $length = $asset->size;
+    my $clength = $c->req->headers->content_length;
+    return $c->render(
+        text =>
+          sprintf( "content-length mismatch %d != %d", $length, $clength ),
+        status => 500
+    ) unless $length == $clength;
     # compare b($asset->slurp)->md5_hex to content_md5 header
     app->log->debug("putting file $file to $destination");
     $asset->move_to("$destination/$file");

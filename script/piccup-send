@@ -21,6 +21,7 @@ sub main {
     if (my @missing = grep {!-e $_} @files) {
         die "Could not open @missing\n";
     }
+    my @failed;
     my $client = Mojo::Client->new();
     for my $file (@files) {
         my $url =
@@ -28,9 +29,13 @@ sub main {
           ->userinfo("$conf->{user}:$conf->{pw}");
         my $contents = Mojo::Asset::File->new( path => $file )->slurp;
         $client->put( $url => { Connection => "Close" },
-            $contents => sub { print $file, " : ",shift->res->body, "\n"; }
+            $contents => sub { print $file, " : ",$_[0]->res->body, "\n";
+                push @failed, $file unless $_[0]->res->code==200  }
         );
     }
     $client->start;
-}
+    for (@failed) {
+        print "failed : $_\n";
+    }
 
+}
