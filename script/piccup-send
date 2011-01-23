@@ -39,11 +39,5 @@ sub main {
         queue_upload($client,$file,\@failed);
     }
     $client->start;
-    my @failed_twice;
-    for (@failed) {
-        print "retrying : $_\n";
-        queue_upload($client,$_,\@failed_twice);
-    }
-    $client->start;
-    die "Could not upload @failed_twice\n" if @failed_twice;
+    warn "Failed to upload $_\n" for @failed;
 }
