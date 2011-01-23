@@ -1,4 +1,4 @@
-Piccup -- a simple image viewer/uploader/downloader.
+Piccup -- a simple REST-driven picture uploader/downloader/gallery.
 
 Features :
     - minimal configuration
@@ -7,23 +7,15 @@ Features :
     - per-user directories
     - REST interface
 
-Installation :
+Quick start :
 
-Piccup daemon
+   # Start the server on my.server.net
+   cp Piccup.conf.sample Piccup.conf
+   # edit Piccup.conf
+   ./Piccup daemon
 
-Sample configuration file :
+   # Send some pictures from a client
+   piccup-send --user=a --pw=b --url=http://my.server.net pictures/*.jpg 
 
-{
-    "thumb_dir" : "/var/thumbs",
-    "upload_base" : "/var/piccup",
-    "sam" : {
-        "pw" : "foo",
-        "dirs" : [ "/some/dir/someplace" ]
-     },
-    "pippin" : {
-        "pw" : "bar",
-        "dirs" : [ "/var/piccup/*" ]
-}
-
-
+   # Now visit http://my.server.net:3000
 
