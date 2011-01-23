@@ -11,6 +11,8 @@ use File::Spec;
 use File::Path qw/mkpath/;
 use POSIX;
 
+$ENV{MOJO_MAX_MESSAGE_SIZE} = 1024 * 1024 * 1024 * 10;
+
 plugin 'json_config';
 plugin 'basic_auth';
 
