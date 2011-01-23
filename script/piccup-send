@@ -16,6 +16,18 @@ our $conf = {
 
 &main;
 
+sub queue_upload {
+    my ($client,$file,$failed) = @_;
+    my $url =
+      Mojo::URL->new( join '/', $conf->{url}, ( basename $file) )
+      ->userinfo("$conf->{user}:$conf->{pw}");
+    my $contents = Mojo::Asset::File->new( path => $file )->slurp;
+    $client->put( $url => { Connection => "Close" },
+        $contents => sub { print $file, " : ",$_[0]->res->body, "\n";
+            push @$failed, $file unless $_[0]->res->code==200  }
+    );
+}
+
 sub main {
     my @files = @ARGV;
     if (my @missing = grep {!-e $_} @files) {
@@ -24,18 +36,14 @@ sub main {
     my @failed;
     my $client = Mojo::Client->new();
     for my $file (@files) {
-        my $url =
-          Mojo::URL->new( join '/', $conf->{url}, ( basename $file) )
-          ->userinfo("$conf->{user}:$conf->{pw}");
-        my $contents = Mojo::Asset::File->new( path => $file )->slurp;
-        $client->put( $url => { Connection => "Close" },
-            $contents => sub { print $file, " : ",$_[0]->res->body, "\n";
-                push @failed, $file unless $_[0]->res->code==200  }
-        );
+        queue_upload($client,$file,\@failed);
     }
     $client->start;
+    my @failed_twice;
     for (@failed) {
-        print "failed : $_\n";
+        print "retrying : $_\n";
+        queue_upload($client,$_,\@failed_twice);
     }
-
+    $client->start;
+    die "Could not upload @failed_twice\n" if @failed_twice;
 }
