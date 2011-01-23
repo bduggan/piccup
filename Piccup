@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# quikpic image viewer, copyright Brian Duggan 2010, 2011, GPL
+# piccup image viewer, copyright Brian Duggan 2010, 2011, GPL
 # <bduggan@matatu.org>
 
 use Mojolicious::Lite;
@@ -134,14 +134,14 @@ __DATA__
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-<%= stylesheet 'quickpik.css' =%>
+<%= stylesheet 'piccup.css' =%>
 </head>
 <body>
 <%= content =%>
 </body>
 </html>
 
-@@ quickpik.css
+@@ piccup.css
 body {
     background:#fefed7;
     font-family:sans-serif;

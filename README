@@ -1,28 +1,28 @@
-Quikpic -- a simple image viewer with thumbnails.
+Piccup -- a simple image viewer/uploader/downloader.
 
 Features :
     - minimal configuration
     - lazy creation of thumbnails
     - easy username/password setup
     - per-user directories
+    - REST interface
 
 Installation :
 
-find-jpegs /one /two /three > Quicpic.json
-Quikpic daemon
+Piccup daemon
 
 Sample configuration file :
 
 {
-    "thumb_dir" : "/tmp",
+    "thumb_dir" : "/var/thumbs",
+    "upload_base" : "/var/piccup",
     "sam" : {
         "pw" : "foo",
         "dirs" : [ "/some/dir/someplace" ]
-      },
-    "joe" : {
-        "pw" : "foo",
-        "dir_file" : "<%= app->home =%>/all.txt"
-      }
+     },
+    "pippin" : {
+        "pw" : "bar",
+        "dirs" : [ "/var/piccup/*" ]
 }
 
 
