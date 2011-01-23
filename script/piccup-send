@@ -5,22 +5,28 @@
 use Mojo::Client;
 use Mojo::Transaction::Single;
 use File::Basename q/basename/;
+use Getopt::Long;
 use strict;
 use warnings;
 
-our $conf = {
-    url => q[http://localhost:3000],
-    user => "brian",
-    pw => "foo"
-};
+our %conf;
+
+my $r = GetOptions( \%conf,
+    "url=s",
+    "user=s",
+    "pw=s" ) or exit 1;
+
+for (qw/url user pw/) {
+    die "missing $_" unless $conf{$_};
+}
 
 &main;
 
 sub queue_upload {
     my ($client,$file,$failed) = @_;
     my $url =
-      Mojo::URL->new( join '/', $conf->{url}, ( basename $file) )
-      ->userinfo("$conf->{user}:$conf->{pw}");
+      Mojo::URL->new( join '/', $conf{url}, ( basename $file) )
+      ->userinfo("$conf{user}:$conf{pw}");
     my $contents = Mojo::Asset::File->new( path => $file )->slurp;
     $client->put( $url => { Connection => "Close" },
         $contents => sub {
