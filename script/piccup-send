@@ -23,8 +23,13 @@ sub queue_upload {
       ->userinfo("$conf->{user}:$conf->{pw}");
     my $contents = Mojo::Asset::File->new( path => $file )->slurp;
     $client->put( $url => { Connection => "Close" },
-        $contents => sub { print $file, " : ",$_[0]->res->body, "\n";
-            push @$failed, $file unless $_[0]->res->code==200  }
+        $contents => sub {
+            my $res = shift->res;
+            print $file, " : ",$res->body, "\n";
+            return if $res->code && $res->code==200;
+            push @$failed, $file;
+            $client->log->warn("$file : error : ".$res->to_string);
+        }
     );
 }
 
