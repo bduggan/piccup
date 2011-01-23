@@ -143,7 +143,7 @@ __DATA__
 
 @@ quickpik.css
 body {
-    background:#dcdca0;
+    background:#fefed7;
     font-family:sans-serif;
     font-size:8pt;
 }
@@ -178,7 +178,7 @@ div.img
   width:auto;
   float:left;
   text-align:center;
-  background-color:#baba80;
+  background-color:#ededea;
   border:1px solid #a5afaa;
   }
 div.img img
@@ -203,9 +203,9 @@ a {
     text-decoration:none;
 }
 .shadow {
-    -moz-box-shadow: 3px 3px 4px #050f0a;
-    -webkit-box-shadow: 3px 3px 4px #050f0a;
-    box-shadow: 3px 3px 4px #050f0a;
+    -moz-box-shadow: 1px 1px 2px #454f04;
+    -webkit-box-shadow: 1px 1px 2px #454f4a;
+    box-shadow: 1px 1px 2px #454f4a;
 }
 
 
